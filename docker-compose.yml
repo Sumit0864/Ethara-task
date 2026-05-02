@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: taskmanager-postgres
+    environment:
+      POSTGRES_DB: taskmanager
+      POSTGRES_USER: taskmanager
+      POSTGRES_PASSWORD: taskmanager123
+    ports:
+      - "5434:5432"
+    volumes:
+      - taskmanager_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U taskmanager -d taskmanager"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  taskmanager_pgdata:
