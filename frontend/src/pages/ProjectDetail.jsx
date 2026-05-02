@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   Plus, Trash2, UserMinus, Users, CheckSquare, ArrowLeft, Edit2,
   GripVertical, Calendar, AlertCircle, Search, Filter,
 } from 'lucide-react'
 import { format, isAfter, parseISO } from 'date-fns'
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 import api from '../api/client'
 import toast from 'react-hot-toast'
 import useAuthStore from '../store/authStore'
@@ -33,129 +34,135 @@ const COLUMNS = [
   },
 ]
 
-function TaskCard({ task, isAdmin, currentUserId, onEdit, onDelete, dragging, onDragStart, onDragEnd }) {
+function TaskCard({ task, index, isAdmin, currentUserId, onEdit, onDelete }) {
   const isOverdue = task.due_date && !isAfter(parseISO(task.due_date), new Date()) && task.status !== 'done'
   const isAssignee = task.assignees?.some((a) => a.id === currentUserId)
   const canEdit = isAdmin || task.created_by === currentUserId || isAssignee
   const canDelete = isAdmin || task.created_by === currentUserId
-  const canDrag = canEdit
 
   return (
-    <div
-      draggable={canDrag}
-      onDragStart={(e) => canDrag && onDragStart(e, task)}
-      onDragEnd={onDragEnd}
-      className={`task-card group ${dragging ? 'task-card-dragging' : ''}`}
-      style={!canDrag ? { cursor: 'default' } : undefined}
-    >
-      {/* Top row: grip + title + actions */}
-      <div className="flex items-start gap-2 mb-2">
-        {canDrag && (
-          <GripVertical
-            size={14}
-            className="mt-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-            style={{ color: 'var(--text-tertiary)' }}
-          />
-        )}
-        <h4 className="font-medium text-sm leading-snug flex-1 text-text-primary">{task.title}</h4>
-        <div className="flex gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-          {canEdit && (
-            <button
-              onClick={(e) => { e.stopPropagation(); onEdit(task) }}
-              className="p-1.5 rounded-md transition-colors"
-              style={{ color: 'var(--text-tertiary)' }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = '#5B5BD6'
-                e.currentTarget.style.background = 'rgba(91,91,214,0.1)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = 'var(--text-tertiary)'
-                e.currentTarget.style.background = 'transparent'
-              }}
-            >
-              <Edit2 size={12} />
-            </button>
+    <Draggable draggableId={String(task.id)} index={index} isDragDisabled={!canEdit}>
+      {(provided, snapshot) => (
+        <div
+          ref={provided.innerRef}
+          {...provided.draggableProps}
+          {...provided.dragHandleProps}
+          className={`task-card group ${snapshot.isDragging ? 'task-card-dragging' : ''}`}
+          style={{
+            ...provided.draggableProps.style,
+            cursor: canEdit ? 'grab' : 'default',
+          }}
+        >
+          {/* Top row: grip + title + actions */}
+          <div className="flex items-start gap-2 mb-2">
+            {canEdit && (
+              <GripVertical
+                size={14}
+                className="mt-0.5 shrink-0 opacity-40 group-hover:opacity-100 transition-opacity"
+                style={{ color: 'var(--text-tertiary)' }}
+              />
+            )}
+            <h4 className="font-medium text-sm leading-snug flex-1 text-text-primary">{task.title}</h4>
+            <div className="flex gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+              {canEdit && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onEdit(task) }}
+                  className="p-1.5 rounded-md transition-colors"
+                  style={{ color: 'var(--text-tertiary)' }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = '#5B5BD6'
+                    e.currentTarget.style.background = 'rgba(91,91,214,0.1)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = 'var(--text-tertiary)'
+                    e.currentTarget.style.background = 'transparent'
+                  }}
+                >
+                  <Edit2 size={12} />
+                </button>
+              )}
+              {canDelete && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); onDelete(task.id) }}
+                  className="p-1.5 rounded-md transition-colors"
+                  style={{ color: 'var(--text-tertiary)' }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = '#E5484D'
+                    e.currentTarget.style.background = 'rgba(229,72,77,0.1)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = 'var(--text-tertiary)'
+                    e.currentTarget.style.background = 'transparent'
+                  }}
+                >
+                  <Trash2 size={12} />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Description */}
+          {task.description && (
+            <p className="text-xs line-clamp-2 leading-relaxed mb-3" style={{ color: 'var(--text-tertiary)' }}>
+              {task.description}
+            </p>
           )}
-          {canDelete && (
-            <button
-              onClick={(e) => { e.stopPropagation(); onDelete(task.id) }}
-              className="p-1.5 rounded-md transition-colors"
-              style={{ color: 'var(--text-tertiary)' }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = '#E5484D'
-                e.currentTarget.style.background = 'rgba(229,72,77,0.1)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = 'var(--text-tertiary)'
-                e.currentTarget.style.background = 'transparent'
-              }}
-            >
-              <Trash2 size={12} />
-            </button>
-          )}
-        </div>
-      </div>
 
-      {/* Description */}
-      {task.description && (
-        <p className="text-xs line-clamp-2 leading-relaxed mb-3" style={{ color: 'var(--text-tertiary)' }}>
-          {task.description}
-        </p>
-      )}
-
-      {/* Badges */}
-      <div className="flex items-center gap-1.5 flex-wrap mb-3">
-        <PriorityBadge priority={task.priority} />
-        {task.due_date && (
-          <span
-            className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-md"
-            style={{
-              background: isOverdue ? 'rgba(229,72,77,0.1)' : 'var(--bg-surface)',
-              color: isOverdue ? '#F87171' : 'var(--text-secondary)',
-              boxShadow: isOverdue
-                ? 'inset 0 0 0 1px rgba(229,72,77,0.2)'
-                : 'inset 0 0 0 1px var(--border)',
-            }}
-          >
-            {isOverdue ? <AlertCircle size={11} /> : <Calendar size={11} />}
-            {format(parseISO(task.due_date), 'MMM d')}
-          </span>
-        )}
-      </div>
-
-      {/* Assignees */}
-      {task.assignees?.length > 0 && (
-        <div className="flex items-center gap-2">
-          <div className="flex -space-x-1.5">
-            {task.assignees.slice(0, 4).map((a) => (
-              <div
-                key={a.id}
-                title={a.full_name}
-                className="avatar avatar-sm ring-2"
-                style={{ ringColor: 'var(--bg-elevated)' }}
-              >
-                {a.full_name[0].toUpperCase()}
-              </div>
-            ))}
-            {task.assignees.length > 4 && (
-              <div
-                className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-semibold ring-2"
+          {/* Badges */}
+          <div className="flex items-center gap-1.5 flex-wrap mb-3">
+            <PriorityBadge priority={task.priority} />
+            {task.due_date && (
+              <span
+                className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-md"
                 style={{
-                  background: 'var(--bg-hover)',
-                  color: 'var(--text-secondary)',
-                  ringColor: 'var(--bg-elevated)',
+                  background: isOverdue ? 'rgba(229,72,77,0.1)' : 'var(--bg-surface)',
+                  color: isOverdue ? '#F87171' : 'var(--text-secondary)',
+                  boxShadow: isOverdue
+                    ? 'inset 0 0 0 1px rgba(229,72,77,0.2)'
+                    : 'inset 0 0 0 1px var(--border)',
                 }}
               >
-                +{task.assignees.length - 4}
-              </div>
+                {isOverdue ? <AlertCircle size={11} /> : <Calendar size={11} />}
+                {format(parseISO(task.due_date), 'MMM d')}
+              </span>
             )}
           </div>
-          <span className="text-[11px] truncate" style={{ color: 'var(--text-tertiary)' }}>
-            {task.assignees.length === 1 ? task.assignees[0].full_name : `${task.assignees.length} assignees`}
-          </span>
+
+          {/* Assignees */}
+          {task.assignees?.length > 0 && (
+            <div className="flex items-center gap-2">
+              <div className="flex -space-x-1.5">
+                {task.assignees.slice(0, 4).map((a) => (
+                  <div
+                    key={a.id}
+                    title={a.full_name}
+                    className="avatar avatar-sm ring-2"
+                    style={{ ringColor: 'var(--bg-elevated)' }}
+                  >
+                    {a.full_name[0].toUpperCase()}
+                  </div>
+                ))}
+                {task.assignees.length > 4 && (
+                  <div
+                    className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-semibold ring-2"
+                    style={{
+                      background: 'var(--bg-hover)',
+                      color: 'var(--text-secondary)',
+                      ringColor: 'var(--bg-elevated)',
+                    }}
+                  >
+                    +{task.assignees.length - 4}
+                  </div>
+                )}
+              </div>
+              <span className="text-[11px] truncate" style={{ color: 'var(--text-tertiary)' }}>
+                {task.assignees.length === 1 ? task.assignees[0].full_name : `${task.assignees.length} assignees`}
+              </span>
+            </div>
+          )}
         </div>
       )}
-    </div>
+    </Draggable>
   )
 }
 
@@ -172,8 +179,6 @@ export default function ProjectDetail() {
   const [showMemberModal, setShowMemberModal] = useState(false)
   const [search, setSearch] = useState('')
   const [priorityFilter, setPriorityFilter] = useState('')
-  const [draggingId, setDraggingId] = useState(null)
-  const [dropTarget, setDropTarget] = useState(null)
 
   const fetchProject = () =>
     api.get(`/api/projects/${id}`).then(({ data }) => setProject(data)).catch(() => navigate('/projects'))
@@ -231,42 +236,34 @@ export default function ProjectDetail() {
     }
   }
 
-  // Drag & drop handlers
-  const onDragStart = (e, task) => {
-    setDraggingId(task.id)
-    e.dataTransfer.effectAllowed = 'move'
-    try { e.dataTransfer.setData('text/plain', String(task.id)) } catch (_) {}
-  }
-  const onDragEnd = () => {
-    setDraggingId(null)
-    setDropTarget(null)
-  }
-  const onDragOverColumn = (e, status) => {
-    e.preventDefault()
-    e.dataTransfer.dropEffect = 'move'
-    if (dropTarget !== status) setDropTarget(status)
-  }
-  const onDragLeaveColumn = (e, status) => {
-    if (e.currentTarget.contains(e.relatedTarget)) return
-    if (dropTarget === status) setDropTarget(null)
-  }
-  const onDropColumn = async (e, status) => {
-    e.preventDefault()
-    const taskId = Number(e.dataTransfer.getData('text/plain')) || draggingId
-    setDropTarget(null)
-    setDraggingId(null)
-    if (!taskId) return
+  const onDragEnd = async (result) => {
+    const { destination, source, draggableId } = result
+
+    if (!destination) return
+    if (destination.droppableId === source.droppableId && destination.index === source.index) return
+
+    const status = destination.droppableId
+    const taskId = draggableId
     const task = tasks.find((t) => t.id === taskId)
-    if (!task || task.status === status) return
-    const isAssignee = task.assignees?.some((a) => a.id === user?.id)
-    const canMove = isAdmin || task.created_by === user?.id || isAssignee
-    if (!canMove) {
-      toast.error("You don't have permission to move this task")
-      return
-    }
+
+    if (!task) return
+
+    // Reorder/Move logic
     const prev = tasks
-    setTasks((curr) => curr.map((t) => (t.id === taskId ? { ...t, status } : t)))
-    persistStatus(taskId, status, prev)
+    const newTasks = Array.from(tasks)
+    const taskIndex = newTasks.findIndex(t => t.id === taskId)
+    newTasks[taskIndex] = { ...task, status }
+    
+    // We update local state immediately for snappy feel
+    setTasks(newTasks)
+    
+    // Persist to backend
+    try {
+      await api.patch(`/api/tasks/${taskId}`, { status })
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Failed to update status')
+      setTasks(prev)
+    }
   }
 
   const visibleTasks = tasks.filter((t) => {
@@ -447,83 +444,85 @@ export default function ProjectDetail() {
           </div>
 
           {/* Kanban board */}
-          <div className="grid md:grid-cols-3 gap-4">
-            {COLUMNS.map(({ key, label, color, icon }) => {
-              const colTasks = getColumnTasks(key)
-              const isDropHover = dropTarget === key
-              return (
-                <div
-                  key={key}
-                  onDragOver={(e) => onDragOverColumn(e, key)}
-                  onDragLeave={(e) => onDragLeaveColumn(e, key)}
-                  onDrop={(e) => onDropColumn(e, key)}
-                  className={`kanban-col ${isDropHover ? 'kanban-col-drop' : ''}`}
-                >
-                  {/* Column header */}
-                  <div className="flex items-center justify-between mb-3 px-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm" style={{ color }}>{icon}</span>
-                      <h3 className="text-[13px] font-semibold text-text-primary">{label}</h3>
-                      <span
-                        className="text-[11px] font-medium px-1.5 py-0.5 rounded-full"
-                        style={{ background: 'var(--bg-elevated)', color: 'var(--text-tertiary)' }}
-                      >
-                        {colTasks.length}
-                      </span>
-                    </div>
-                    {key === 'todo' && (
-                      <button
-                        onClick={() => { setEditTask(null); setShowTaskModal(true) }}
-                        className="rounded-md p-1 transition-colors"
-                        style={{ color: 'var(--text-tertiary)' }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.color = '#5B5BD6'
-                          e.currentTarget.style.background = 'rgba(91,91,214,0.1)'
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.color = 'var(--text-tertiary)'
-                          e.currentTarget.style.background = 'transparent'
-                        }}
-                        title="Add task"
-                      >
-                        <Plus size={14} />
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Task list */}
-                  <div className="space-y-2 min-h-[120px]">
-                    {colTasks.map((task) => (
-                      <TaskCard
-                        key={task.id}
-                        task={task}
-                        isAdmin={isAdmin}
-                        currentUserId={user?.id}
-                        onEdit={(t) => { setEditTask(t); setShowTaskModal(true) }}
-                        onDelete={handleDeleteTask}
-                        dragging={draggingId === task.id}
-                        onDragStart={onDragStart}
-                        onDragEnd={onDragEnd}
-                      />
-                    ))}
-                    {colTasks.length === 0 && (
+          <DragDropContext onDragEnd={onDragEnd}>
+            <div className="grid md:grid-cols-3 gap-4">
+              {COLUMNS.map(({ key, label, color, icon }) => {
+                const colTasks = getColumnTasks(key)
+                return (
+                  <Droppable droppableId={key} key={key}>
+                    {(provided, snapshot) => (
                       <div
-                        className="flex flex-col items-center justify-center text-center py-8 rounded-lg"
-                        style={{
-                          border: isDropHover ? '2px dashed rgba(91,91,214,0.4)' : '2px dashed var(--border)',
-                          background: isDropHover ? 'rgba(91,91,214,0.04)' : 'transparent',
-                        }}
+                        {...provided.droppableProps}
+                        ref={provided.innerRef}
+                        className={`kanban-col ${snapshot.isDraggingOver ? 'kanban-col-drop' : ''}`}
                       >
-                        <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
-                          {isDropHover ? 'Drop here' : 'No tasks'}
-                        </p>
+                        {/* Column header */}
+                        <div className="flex items-center justify-between mb-3 px-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm" style={{ color }}>{icon}</span>
+                            <h3 className="text-[13px] font-semibold text-text-primary">{label}</h3>
+                            <span
+                              className="text-[11px] font-medium px-1.5 py-0.5 rounded-full"
+                              style={{ background: 'var(--bg-elevated)', color: 'var(--text-tertiary)' }}
+                            >
+                              {colTasks.length}
+                            </span>
+                          </div>
+                          {key === 'todo' && (
+                            <button
+                              onClick={() => { setEditTask(null); setShowTaskModal(true) }}
+                              className="rounded-md p-1 transition-colors"
+                              style={{ color: 'var(--text-tertiary)' }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.color = '#5B5BD6'
+                                e.currentTarget.style.background = 'rgba(91,91,214,0.1)'
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.color = 'var(--text-tertiary)'
+                                e.currentTarget.style.background = 'transparent'
+                              }}
+                              title="Add task"
+                            >
+                              <Plus size={14} />
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Task list */}
+                        <div className="space-y-2 min-h-[150px]">
+                          {colTasks.map((task, index) => (
+                            <TaskCard
+                              key={task.id}
+                              task={task}
+                              index={index}
+                              isAdmin={isAdmin}
+                              currentUserId={user?.id}
+                              onEdit={(t) => { setEditTask(t); setShowTaskModal(true) }}
+                              onDelete={handleDeleteTask}
+                            />
+                          ))}
+                          {provided.placeholder}
+                          {colTasks.length === 0 && !snapshot.isDraggingOver && (
+                            <div
+                              className="flex flex-col items-center justify-center text-center py-8 rounded-lg"
+                              style={{
+                                border: '2px dashed var(--border)',
+                                background: 'transparent',
+                              }}
+                            >
+                              <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                                No tasks
+                              </p>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+                  </Droppable>
+                )
+              })}
+            </div>
+          </DragDropContext>
         </>
       )}
 
