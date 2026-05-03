@@ -138,7 +138,7 @@ export default function TaskModal({ projectId, task, onClose, onSaved }) {
             <label className="label">
               Assignees
               {form.assignee_ids.length > 0 && (
-                <span className="ml-1.5 font-normal" style={{ color: '#8B8BF5' }}>
+                <span className="ml-1.5 font-normal" style={{ color: 'var(--text-primary)' }}>
                   ({form.assignee_ids.length} selected)
                 </span>
               )}
@@ -159,21 +159,21 @@ export default function TaskModal({ projectId, task, onClose, onSaved }) {
                     onClick={() => toggleAssignee(u.id)}
                     className="w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors duration-100"
                     style={{
-                      background: selected ? 'rgba(91,91,214,0.08)' : 'transparent',
+                      background: selected ? 'var(--bg-elevated)' : 'transparent',
                       borderBottom: '1px solid var(--border)',
                     }}
                     onMouseEnter={(e) => {
                       if (!selected) e.currentTarget.style.background = 'var(--bg-hover)'
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = selected ? 'rgba(91,91,214,0.08)' : 'transparent'
+                      e.currentTarget.style.background = selected ? 'var(--bg-elevated)' : 'transparent'
                     }}
                   >
                     <div
                       className="w-5 h-5 rounded flex items-center justify-center shrink-0 transition-colors"
                       style={{
-                        background: selected ? '#5B5BD6' : 'transparent',
-                        border: selected ? '1px solid #5B5BD6' : '1px solid var(--border-strong)',
+                        background: selected ? 'var(--accent)' : 'transparent',
+                        border: selected ? '1px solid var(--accent)' : '1px solid var(--border-strong)',
                       }}
                     >
                       {selected && <Check size={12} className="text-white" />}

@@ -6,7 +6,7 @@ import api from '../api/client'
 import toast from 'react-hot-toast'
 
 const ACCENTS = [
-  '#5B5BD6', '#3B82F6', '#30A46C', '#E5484D',
+  'var(--accent)', '#3B82F6', '#30A46C', '#E5484D',
   '#F5A623', '#8B5CF6', '#06B6D4', '#EC4899',
 ]
 
@@ -137,16 +137,16 @@ export default function Projects() {
         <div className="flex justify-center py-20">
           <div
             className="animate-spin rounded-full h-8 w-8 border-2 border-t-transparent"
-            style={{ borderColor: 'var(--border)', borderTopColor: '#5B5BD6' }}
+            style={{ borderColor: 'var(--border)', borderTopColor: 'var(--accent)' }}
           />
         </div>
       ) : projects.length === 0 ? (
         <div className="card flex flex-col items-center justify-center py-20 text-center">
           <div
             className="w-14 h-14 rounded-xl flex items-center justify-center mb-4"
-            style={{ background: 'rgba(91,91,214,0.1)' }}
+            style={{ background: 'var(--bg-elevated)' }}
           >
-            <Sparkles size={24} style={{ color: '#5B5BD6' }} />
+            <Sparkles size={24} style={{ color: 'var(--accent)' }} />
           </div>
           <h3 className="text-base font-semibold text-text-primary mb-1">Start your first project</h3>
           <p className="text-sm max-w-sm mb-6" style={{ color: 'var(--text-secondary)' }}>

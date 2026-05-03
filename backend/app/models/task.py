@@ -47,3 +47,4 @@ class Task(Base):
     project: Mapped[Project] = relationship("Project", back_populates="tasks")
     assignees: Mapped[List[User]] = relationship("User", secondary=task_assignees, back_populates="assigned_tasks")
     creator: Mapped[User] = relationship("User", back_populates="created_tasks", foreign_keys=[created_by])
+    time_records: Mapped[List[TimeRecord]] = relationship("TimeRecord", back_populates="task", cascade="all, delete-orphan")

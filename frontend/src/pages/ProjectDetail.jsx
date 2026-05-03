@@ -23,7 +23,7 @@ const COLUMNS = [
   {
     key: 'in_progress',
     label: 'In Progress',
-    color: '#5B5BD6',
+    color: 'var(--accent)',
     icon: '◐',
   },
   {
@@ -70,8 +70,8 @@ function TaskCard({ task, index, isAdmin, currentUserId, onEdit, onDelete }) {
                   className="p-1.5 rounded-md transition-colors"
                   style={{ color: 'var(--text-tertiary)' }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.color = '#5B5BD6'
-                    e.currentTarget.style.background = 'rgba(91,91,214,0.1)'
+                    e.currentTarget.style.color = 'var(--accent)'
+                    e.currentTarget.style.background = 'var(--bg-elevated)'
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.color = 'var(--text-tertiary)'
@@ -280,7 +280,7 @@ export default function ProjectDetail() {
       <div className="flex items-center justify-center h-[60vh]">
         <div
           className="animate-spin rounded-full h-8 w-8 border-2 border-t-transparent"
-          style={{ borderColor: 'var(--border)', borderTopColor: '#5B5BD6' }}
+          style={{ borderColor: 'var(--border)', borderTopColor: 'var(--accent)' }}
         />
       </div>
     )
@@ -314,7 +314,7 @@ export default function ProjectDetail() {
           {/* Subtle glow */}
           <div
             className="absolute -top-16 -right-16 w-40 h-40 rounded-full blur-[80px]"
-            style={{ background: 'rgba(91,91,214,0.12)' }}
+            style={{ background: 'var(--bg-elevated)' }}
           />
           <div className="relative flex flex-wrap items-start justify-between gap-4">
             <div className="flex-1 min-w-0">
@@ -357,7 +357,7 @@ export default function ProjectDetail() {
                     className="h-full rounded-full transition-all duration-500"
                     style={{
                       width: `${completion}%`,
-                      background: 'linear-gradient(90deg, #5B5BD6 0%, #6E6DE8 100%)',
+                      background: 'var(--accent)',
                     }}
                   />
                 </div>
@@ -387,7 +387,7 @@ export default function ProjectDetail() {
             onClick={() => setTab(key)}
             className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium -mb-px transition-colors"
             style={{
-              borderBottom: tab === key ? '2px solid #5B5BD6' : '2px solid transparent',
+              borderBottom: tab === key ? '2px solid var(--accent)' : '2px solid transparent',
               color: tab === key ? 'var(--text-primary)' : 'var(--text-tertiary)',
             }}
           >
@@ -396,8 +396,8 @@ export default function ProjectDetail() {
             <span
               className="ml-0.5 text-[11px] px-1.5 py-0.5 rounded-full"
               style={{
-                background: tab === key ? 'rgba(91,91,214,0.15)' : 'var(--bg-elevated)',
-                color: tab === key ? '#8B8BF5' : 'var(--text-tertiary)',
+                background: tab === key ? 'var(--bg-elevated)' : 'var(--bg-elevated)',
+                color: tab === key ? 'var(--text-primary)' : 'var(--text-tertiary)',
               }}
             >
               {count}
@@ -474,8 +474,8 @@ export default function ProjectDetail() {
                               className="rounded-md p-1 transition-colors"
                               style={{ color: 'var(--text-tertiary)' }}
                               onMouseEnter={(e) => {
-                                e.currentTarget.style.color = '#5B5BD6'
-                                e.currentTarget.style.background = 'rgba(91,91,214,0.1)'
+                                e.currentTarget.style.color = 'var(--accent)'
+                                e.currentTarget.style.background = 'var(--bg-elevated)'
                               }}
                               onMouseLeave={(e) => {
                                 e.currentTarget.style.color = 'var(--text-tertiary)'
@@ -589,7 +589,7 @@ export default function ProjectDetail() {
                         className="pill"
                         style={
                           member.role === 'admin'
-                            ? { background: 'rgba(91,91,214,0.12)', color: '#8B8BF5', boxShadow: 'inset 0 0 0 1px rgba(91,91,214,0.2)' }
+                            ? { background: 'var(--bg-elevated)', color: 'var(--text-primary)', boxShadow: 'inset 0 0 0 1px var(--bg-elevated)' }
                             : { background: 'var(--bg-elevated)', color: 'var(--text-secondary)', boxShadow: 'inset 0 0 0 1px var(--border)' }
                         }
                       >

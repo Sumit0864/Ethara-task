@@ -1,7 +1,9 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { LayoutDashboard, FolderKanban, LogOut, CheckSquare, ChevronDown, Command } from 'lucide-react'
+import { LayoutDashboard, FolderKanban, LogOut, ChevronDown, Command, Shield, Users, Clock } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import useAuthStore from '../store/authStore'
+
+const ROLE_LABELS = { superadmin: 'Super Admin', team_lead: 'Team Lead', tasker: 'Tasker' }
 
 export default function Navbar() {
   const { user, logout } = useAuthStore()
@@ -28,11 +30,20 @@ export default function Navbar() {
 
   const initial = (user?.full_name || '?')[0].toUpperCase()
 
+  // Build nav links based on role
+  const navLinks = [
+    { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['superadmin', 'team_lead', 'tasker'] },
+    { to: '/projects', label: 'Projects', icon: FolderKanban, roles: ['superadmin', 'team_lead', 'tasker'] },
+    { to: '/timesheet', label: 'Timesheet', icon: Clock, roles: ['tasker', 'team_lead'] },
+    { to: '/team', label: 'My Team', icon: Users, roles: ['team_lead'] },
+    { to: '/admin', label: 'Admin', icon: Shield, roles: ['superadmin'] },
+  ].filter((link) => link.roles.includes(user?.role))
+
   return (
     <nav
       className="sticky top-0 z-40"
       style={{
-        background: 'rgba(10, 10, 15, 0.8)',
+        background: 'rgba(0, 0, 0, 0.8)',
         backdropFilter: 'saturate(180%) blur(16px)',
         WebkitBackdropFilter: 'saturate(180%) blur(16px)',
         borderBottom: '1px solid var(--border)',
@@ -45,9 +56,9 @@ export default function Navbar() {
             <Link to="/dashboard" className="flex items-center gap-2.5 group">
               <div
                 className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 group-hover:shadow-glow-lg"
-                style={{ background: 'linear-gradient(135deg, #5B5BD6 0%, #6E6DE8 100%)' }}
+                style={{ background: 'var(--accent)' }}
               >
-                <Command size={16} className="text-white" strokeWidth={2.5} />
+                <Command size={16} className="text-black" strokeWidth={2.5} />
               </div>
               <span className="font-bold text-base tracking-tight gradient-text hidden sm:block">
                 TaskFlow
@@ -56,10 +67,7 @@ export default function Navbar() {
 
             {/* Nav links */}
             <div className="flex items-center gap-0.5">
-              {[
-                { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-                { to: '/projects', label: 'Projects', icon: FolderKanban },
-              ].map(({ to, label, icon: Icon }) => (
+              {navLinks.map(({ to, label, icon: Icon }) => (
                 <Link
                   key={to}
                   to={to}
@@ -105,14 +113,15 @@ export default function Navbar() {
                 <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
                   <p className="text-sm font-medium text-text-primary truncate">{user?.full_name}</p>
                   <p className="text-xs text-text-tertiary truncate mt-0.5">{user?.email}</p>
-                  {user?.role === 'superadmin' && (
-                    <span
-                      className="mt-2 inline-flex text-[10px] font-semibold px-2 py-0.5 rounded-full"
-                      style={{ background: 'rgba(91,91,214,0.15)', color: '#8B8BF5' }}
-                    >
-                      Super Admin
-                    </span>
-                  )}
+                  <span
+                    className="mt-2 inline-flex text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                    style={{
+                      background: user?.role === 'superadmin' ? 'rgba(239,68,68,0.1)' : user?.role === 'team_lead' ? 'rgba(59,130,246,0.1)' : 'var(--bg-hover)',
+                      color: user?.role === 'superadmin' ? '#EF4444' : user?.role === 'team_lead' ? '#3B82F6' : 'var(--text-secondary)',
+                    }}
+                  >
+                    {ROLE_LABELS[user?.role] || user?.role}
+                  </span>
                 </div>
                 <button
                   onClick={handleLogout}

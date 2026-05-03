@@ -8,10 +8,10 @@ const STATUS_CONFIG = {
   },
   in_progress: {
     label: 'In Progress',
-    dot: '#5B5BD6',
-    bg: 'rgba(91, 91, 214, 0.12)',
-    text: '#8B8BF5',
-    ring: 'rgba(91, 91, 214, 0.2)',
+    dot: 'var(--accent)',
+    bg: 'var(--bg-elevated)',
+    text: 'var(--text-primary)',
+    ring: 'var(--bg-elevated)',
   },
   done: {
     label: 'Done',

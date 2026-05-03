@@ -27,7 +27,14 @@ const useAuthStore = create((set) => ({
       set({ user: data.user, token: data.access_token, loading: false })
       return data
     } catch (err) {
-      const msg = err.response?.data?.detail || 'Signup failed'
+      let msg = 'Signup failed'
+      if (err.response?.data?.detail) {
+        msg = typeof err.response.data.detail === 'string' 
+          ? err.response.data.detail 
+          : JSON.stringify(err.response.data.detail)
+      } else if (err.message) {
+        msg = err.message
+      }
       set({ error: msg, loading: false })
       throw new Error(msg)
     }
@@ -42,7 +49,14 @@ const useAuthStore = create((set) => ({
       set({ user: data.user, token: data.access_token, loading: false })
       return data
     } catch (err) {
-      const msg = err.response?.data?.detail || 'Login failed'
+      let msg = 'Login failed'
+      if (err.response?.data?.detail) {
+        msg = typeof err.response.data.detail === 'string' 
+          ? err.response.data.detail 
+          : JSON.stringify(err.response.data.detail)
+      } else if (err.message) {
+        msg = err.message
+      }
       set({ error: msg, loading: false })
       throw new Error(msg)
     }

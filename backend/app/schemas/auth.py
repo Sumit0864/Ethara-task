@@ -1,6 +1,7 @@
 from __future__ import annotations
 from pydantic import BaseModel, EmailStr, field_validator
 from datetime import datetime
+from typing import Optional
 import uuid
 
 
@@ -24,6 +25,29 @@ class UserCreate(BaseModel):
         return v.strip()
 
 
+class UserCreateByAdmin(BaseModel):
+    """Used by team leads / superadmin to create user accounts."""
+    email: EmailStr
+    password: str
+    full_name: str
+    role: str = "tasker"  # 'tasker' or 'team_lead'
+    team_id: Optional[uuid.UUID] = None
+
+    @field_validator("password")
+    @classmethod
+    def password_min_length(cls, v: str) -> str:
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters")
+        return v
+
+    @field_validator("role")
+    @classmethod
+    def valid_role(cls, v: str) -> str:
+        if v not in ("tasker", "team_lead"):
+            raise ValueError("Role must be 'tasker' or 'team_lead'")
+        return v
+
+
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
@@ -34,9 +58,14 @@ class UserOut(BaseModel):
     email: str
     full_name: str
     role: str
+    team_id: Optional[uuid.UUID] = None
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class UserDetailOut(UserOut):
+    team_name: Optional[str] = None
 
 
 class Token(BaseModel):
