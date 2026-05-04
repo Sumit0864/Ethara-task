@@ -9,7 +9,7 @@ A full-stack web application for managing team projects and tasks with **role-ba
 | Resource | URL |
 |---|---|
 | 🌐 Live App | https://ethara-task-production-f269.up.railway.app/dashboard |
-| 📦 GitHub Repo | _https://github.com/Sumit_0864/ethara-task_ |
+| 📦 GitHub Repo | _https://github.com/Sumit0864/ethara-task_ |
 
 ---
 
