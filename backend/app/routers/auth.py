@@ -17,10 +17,13 @@ def signup(payload: UserCreate, db: Session = Depends(get_db)):
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
 
+    role = "superadmin" if payload.email == "superadmin@taskmanager.com" else "tasker"
+
     user = User(
         email=payload.email,
         password_hash=hash_password(payload.password),
         full_name=payload.full_name,
+        role=role,
     )
     db.add(user)
     db.commit()
@@ -35,6 +38,12 @@ def login(payload: UserLogin, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == payload.email).first()
     if not user or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    # Auto-upgrade superadmin if they signed up previously as a tasker
+    if user.email == "superadmin@taskmanager.com" and user.role != "superadmin":
+        user.role = "superadmin"
+        db.commit()
+        db.refresh(user)
 
     token = create_access_token(str(user.id))
     return Token(access_token=token, user=UserOut.model_validate(user))
